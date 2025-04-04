@@ -2,8 +2,11 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const BusinessPartners = () => {
+  const navigate = useNavigate();
+  
   const benefits = [
     "Regular waste collection services tailored to your business needs",
     "Corporate sustainability reports for ESG compliance",
@@ -11,6 +14,14 @@ const BusinessPartners = () => {
     "Enhanced brand image as an environmentally responsible business",
     "Custom recycling solutions for specialized waste streams"
   ];
+
+  const handleBusinessSubscription = () => {
+    navigate("/signin");
+  };
+
+  const handleBecomePartner = () => {
+    navigate("/become-partner");
+  };
 
   return (
     <section className="py-16 bg-eco-pale-green">
@@ -37,7 +48,10 @@ const BusinessPartners = () => {
                 ))}
               </ul>
               <div className="mt-8">
-                <Button className="w-full bg-eco-green hover:bg-eco-teal">
+                <Button 
+                  className="w-full bg-eco-green hover:bg-eco-teal"
+                  onClick={handleBusinessSubscription}
+                >
                   Business Subscription Plans
                 </Button>
               </div>
@@ -71,7 +85,10 @@ const BusinessPartners = () => {
               <p className="text-gray-600 mb-6">
                 Join our network to receive high-quality sorted waste materials at competitive prices.
               </p>
-              <Button className="w-full bg-eco-green hover:bg-eco-teal">
+              <Button 
+                className="w-full bg-eco-green hover:bg-eco-teal"
+                onClick={handleBecomePartner}
+              >
                 Become a Partner
               </Button>
             </div>

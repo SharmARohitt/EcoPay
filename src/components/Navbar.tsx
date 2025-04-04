@@ -1,11 +1,24 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Recycle } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignIn = () => {
+    navigate("/signin");
+  };
+
+  const handleRegister = () => {
+    navigate("/signin?tab=register");
+  };
+
+  const handleBecomePartner = () => {
+    navigate("/become-partner");
+  };
 
   return (
     <nav className="w-full py-4 bg-white/90 backdrop-blur-sm shadow-sm fixed top-0 z-50">
@@ -29,10 +42,17 @@ const Navbar = () => {
           <Link to="/about" className="text-gray-700 hover:text-eco-green transition-colors">
             About
           </Link>
-          <Button className="bg-eco-green hover:bg-eco-teal ml-4">
+          <Button 
+            className="bg-eco-green hover:bg-eco-teal ml-4"
+            onClick={handleSignIn}
+          >
             Sign In
           </Button>
-          <Button variant="outline" className="border-eco-green text-eco-green hover:bg-eco-pale-green">
+          <Button 
+            variant="outline" 
+            className="border-eco-green text-eco-green hover:bg-eco-pale-green"
+            onClick={handleRegister}
+          >
             Register
           </Button>
         </div>
@@ -69,10 +89,17 @@ const Navbar = () => {
               About
             </Link>
             <div className="flex flex-col space-y-2 pt-2">
-              <Button className="bg-eco-green hover:bg-eco-teal w-full">
+              <Button 
+                className="bg-eco-green hover:bg-eco-teal w-full"
+                onClick={handleSignIn}
+              >
                 Sign In
               </Button>
-              <Button variant="outline" className="border-eco-green text-eco-green hover:bg-eco-pale-green w-full">
+              <Button 
+                variant="outline" 
+                className="border-eco-green text-eco-green hover:bg-eco-pale-green w-full"
+                onClick={handleRegister}
+              >
                 Register
               </Button>
             </div>

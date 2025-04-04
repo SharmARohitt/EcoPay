@@ -2,8 +2,20 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HomeHero = () => {
+  const navigate = useNavigate();
+
+  const handleDownloadApp = () => {
+    // In a real app, this might direct to app stores
+    window.open("https://example.com/download", "_blank");
+  };
+
+  const handleSchedulePickup = () => {
+    navigate("/signin");
+  };
+
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
       {/* Background with leaf animation */}
@@ -25,10 +37,17 @@ const HomeHero = () => {
             The AI-Powered, Blockchain-Backed Waste Management Platform That Turns Your Trash Into Cash
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mb-12">
-            <Button className="bg-eco-green hover:bg-eco-teal text-lg px-8 py-6">
+            <Button 
+              className="bg-eco-green hover:bg-eco-teal text-lg px-8 py-6"
+              onClick={handleDownloadApp}
+            >
               Download App
             </Button>
-            <Button variant="outline" className="border-eco-green text-eco-green hover:bg-eco-pale-green text-lg px-8 py-6">
+            <Button 
+              variant="outline" 
+              className="border-eco-green text-eco-green hover:bg-eco-pale-green text-lg px-8 py-6"
+              onClick={handleSchedulePickup}
+            >
               Schedule Pickup
             </Button>
           </div>
