@@ -1,9 +1,8 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Award, Cash, Gift, Discount, Link } from "lucide-react";
+import { Award, Coins, Gift, Ticket, Share } from "lucide-react";
 
 const RewardsRedemptionPage = () => {
   const [points, setPoints] = useState(1250);
@@ -51,7 +50,7 @@ const RewardsRedemptionPage = () => {
             
             <div className="border rounded-lg p-4 bg-blue-50">
               <div className="flex items-center mb-3">
-                <Cash className="h-5 w-5 text-blue-600 mr-2" />
+                <Coins className="h-5 w-5 text-blue-600 mr-2" />
                 <h3 className="font-bold">Cash Conversion</h3>
               </div>
               <p className="text-sm mb-3">Convert your points to cash deposits directly to your bank account.</p>
