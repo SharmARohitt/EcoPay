@@ -21,6 +21,7 @@ import RecyclingGuidePage from "./pages/RecyclingGuidePage";
 import InviteFriendsPage from "./pages/InviteFriendsPage";
 import SustainabilityReportPage from "./pages/SustainabilityReportPage";
 import TeamPage from "./pages/TeamPage";
+import PaymentsPage from "./pages/PaymentsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/invite-friends" element={<InviteFriendsPage />} />
           <Route path="/sustainability-report" element={<SustainabilityReportPage />} />
           <Route path="/team" element={<TeamPage />} />
+          <Route path="/payments" element={<PaymentsPage />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

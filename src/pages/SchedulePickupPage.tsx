@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import SimpleMap from "@/components/SimpleMap";
 
 const formSchema = z.object({
+  address: z.string().min(5, { message: "Please enter your address" }),
   wasteType: z.string({
     required_error: "Please select a waste type",
   }),
@@ -45,7 +46,6 @@ const formSchema = z.object({
   timeSlot: z.string({
     required_error: "Please select a time slot",
   }),
-  address: z.string().min(5, { message: "Please enter your address" }),
   additionalNotes: z.string().optional(),
 });
 
@@ -58,11 +58,11 @@ const SchedulePickupPage = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      address: "",
       wasteType: "",
       estimatedWeight: "",
       date: undefined,
       timeSlot: "",
-      address: "",
       additionalNotes: "",
     },
   });
@@ -111,6 +111,35 @@ const SchedulePickupPage = () => {
             <div>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Moved the address field to the top */}
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pickup Address</FormLabel>
+                        <div className="flex items-center">
+                          <FormControl>
+                            <Input placeholder="Your full address" {...field} />
+                          </FormControl>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="ml-2 flex-shrink-0"
+                            onClick={() => {
+                              // In a real app, this would get the user's location
+                              toast.info("Using your current location");
+                              form.setValue("address", "123 Main St, New York, NY 10001");
+                            }}
+                          >
+                            <MapPin className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <FormField
                     control={form.control}
                     name="wasteType"
@@ -227,34 +256,6 @@ const SchedulePickupPage = () => {
                       )}
                     />
                   </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pickup Address</FormLabel>
-                        <div className="flex items-center">
-                          <FormControl>
-                            <Input placeholder="Your full address" {...field} />
-                          </FormControl>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            className="ml-2 flex-shrink-0"
-                            onClick={() => {
-                              // In a real app, this would get the user's location
-                              toast.info("Using your current location");
-                              form.setValue("address", "123 Main St, New York, NY 10001");
-                            }}
-                          >
-                            <MapPin className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   
                   <FormField
                     control={form.control}
