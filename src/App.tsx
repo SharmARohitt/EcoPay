@@ -14,6 +14,13 @@ import SubscriptionPage from "./pages/SubscriptionPage";
 import DashboardPage from "./pages/DashboardPage";
 import SchedulePickupPage from "./pages/SchedulePickupPage";
 import PartnerRegistrationPage from "./pages/PartnerRegistrationPage";
+import HistoryPage from "./pages/HistoryPage";
+import RewardsRedemptionPage from "./pages/RewardsRedemptionPage";
+import ProfilePage from "./pages/ProfilePage";
+import RecyclingGuidePage from "./pages/RecyclingGuidePage";
+import InviteFriendsPage from "./pages/InviteFriendsPage";
+import SustainabilityReportPage from "./pages/SustainabilityReportPage";
+import TeamPage from "./pages/TeamPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +40,16 @@ const App = () => (
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/schedule-pickup" element={<SchedulePickupPage />} />
           <Route path="/become-partner" element={<PartnerRegistrationPage />} />
+          
+          {/* Newly added routes */}
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/rewards-redemption" element={<RewardsRedemptionPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/recycling-guide" element={<RecyclingGuidePage />} />
+          <Route path="/invite-friends" element={<InviteFriendsPage />} />
+          <Route path="/sustainability-report" element={<SustainabilityReportPage />} />
+          <Route path="/team" element={<TeamPage />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
