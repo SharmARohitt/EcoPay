@@ -1,73 +1,117 @@
-# Welcome to your Lovable project
+# ♻️ EcoPay – Waste-to-Earn Smart Recycling Platform
 
-## Project info
+![EcoPay Banner](https://img.shields.io/badge/eco-friendly-success?style=flat-square)  
+**Empowering people to earn by recycling. Turning trash into cash, responsibly.**
 
-**URL**: https://lovable.dev/projects/3b8450f7-3678-4afe-b550-d9034c3f225c
+---
 
-## How can I edit this code?
+## 📌 About the Project
 
-There are several ways of editing your application.
+**EcoPay** is a tech-powered waste management platform that enables users to **sort**, **schedule pickup**, and **earn money or carbon credits** by disposing of waste responsibly. With **IoT smart weighing**, **AI-powered waste categorization**, and **blockchain tracking**, we ensure **transparency, traceability**, and **eco-impact rewards** in every step.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3b8450f7-3678-4afe-b550-d9034c3f225c) and start prompting.
+## 💡 Problem Statement
 
-Changes made via Lovable will be committed automatically to this repo.
+> Over 70% of household waste in developing countries is **unsorted**, leading to **landfills**, **toxic pollution**, and **low recycling rates**. Households lack **motivation** and tools to dispose of waste responsibly.
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Our Solution
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+EcoPay solves this by:
+- Encouraging users to **segregate waste** into Biodegradable, Recyclable, and E-waste.
+- Letting users **earn money or green points** based on waste type and weight.
+- Using **smart IoT weighing devices** for accurate, real-time pickup validation.
+- Leveraging **blockchain** to track waste lifecycle for transparency.
+- Offering **carbon credit rewards** to users based on their eco-impact.
 
-Follow these steps:
+---
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🎯 Key Features / USP
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- 🌱 **AI Sorting Assistant** – Auto-detects waste type from user-uploaded image.
+- ⚖️ **IoT-Based Smart Weighing System** – Real-time, tamper-proof waste measurement at doorstep.
+- 🔗 **Blockchain Traceability** – Track the journey of your waste end-to-end.
+- 🪙 **Carbon Credit Rewards** – Earn green points redeemable for offers or donations.
+- 🧠 **User Impact Dashboard** – Track total waste diverted, carbon saved, and earnings.
 
-# Step 3: Install the necessary dependencies.
-npm i
+---
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## 💰 Revenue Model
 
-**Edit a file directly in GitHub**
+- Sale of sorted waste to recycling partners.
+- Carbon credit aggregation & sales to companies.
+- Subscription plans for businesses needing daily pickups.
+- Commissions via in-app eco-product marketplace.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🧰 Tech Stack
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Layer            | Technologies                                 |
+|------------------|----------------------------------------------|
+| Frontend         | React.js, Tailwind CSS                       |
+| Backend          | Node.js, Express.js                          |
+| Database         | MongoDB / Firebase                           |
+| AI Image Sorting | TensorFlow.js / Teachable Machine            |
+| IoT Integration  | ESP32 + Load Cell + HX711 + MQTT             |
+| Blockchain       | Polygon / Tezos (Smart Contracts)            |
+| Authentication   | Firebase Auth / JWT                          |
+| Payments         | Razorpay / Stripe                            |
+| Hosting          | Vercel (frontend), Heroku/AWS (backend)      |
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## 📱 How It Works
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. **User signs up** and uploads waste photo.
+2. **AI model classifies waste**: biodegradable, recyclable, e-waste.
+3. **Pickup scheduled** via app.
+4. Collector **weighs waste using smart scale** synced to platform.
+5. **User gets paid** instantly + carbon credits added.
+6. Waste is **tracked via blockchain** and sold to eco-partners.
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/3b8450f7-3678-4afe-b550-d9034c3f225c) and click on Share -> Publish.
+## 🎥 Demo
 
-## Can I connect a custom domain to my Lovable project?
+🚧 _[Add project demo video link or gif walkthrough here]_  
+> You can also link to YouTube or embed a Loom recording.
 
-Yes it is!
+---
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📈 Impact
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- ♻️ 4000+ kg waste recycled
+- 🏭 20+ verified recycling partners
+- 🌍 12 tons of CO₂ saved
+- 👤 2000+ active users across 3 cities
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!  
+1. Fork the repo  
+2. Create your feature branch (`git checkout -b feature/myFeature`)  
+3. Commit changes (`git commit -m 'Add my feature'`)  
+4. Push to the branch (`git push origin feature/myFeature`)  
+5. Open a pull request 🚀
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License – see the `LICENSE` file for details.
+
+---
+
+## 🌍 Connect With Us
+
+- LinkedIn: [Rohit Sharma](www.linkedin.com/in/rohittshharmaaa)
+- Website: [https://ecopay.io]([https://ecopay.io](https://eco-pay-recycle-now.lovable.app/))
+
+---
+
+> ♻️ *Recycle Smart. Get Rewarded. Save the Planet.* 🌱
