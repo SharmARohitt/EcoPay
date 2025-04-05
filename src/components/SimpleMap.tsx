@@ -1,7 +1,17 @@
 
 import React, { useState, useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import OSM from 'ol/source/OSM';
+import XYZ from 'ol/source/XYZ';
+import { fromLonLat, toLonLat } from 'ol/proj';
+import Feature from 'ol/Feature';
+import Point from 'ol/geom/Point';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
+import { Style, Icon } from 'ol/style';
 import { Button } from "@/components/ui/button";
 import { MapPin, Navigation } from "lucide-react";
 import { toast } from "sonner";
@@ -22,62 +32,88 @@ const SimpleMap = ({
   height = "400px"
 }: SimpleMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
-  const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
+  const map = useRef<Map | null>(null);
+  const markerFeature = useRef<Feature | null>(null);
+  const markerLayer = useRef<VectorLayer<VectorSource> | null>(null);
   
-  const [mapboxToken, setMapboxToken] = useState<string>("");
-  const [showTokenInput, setShowTokenInput] = useState<boolean>(true);
-  const [mapLoaded, setMapLoaded] = useState<boolean>(false);
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isZooming, setIsZooming] = useState<boolean>(true);
+  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [searchInput, setSearchInput] = useState<string>("");
   
-  // Initialize map when the token is provided
+  // Initialize map
   useEffect(() => {
-    if (!mapboxToken || !mapContainer.current || map.current) return;
+    if (!mapContainer.current || map.current) return;
     
     try {
-      mapboxgl.accessToken = mapboxToken;
-      
-      const newMap = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: "mapbox://styles/mapbox/streets-v11",
-        center: [0, 20], // Start with world view
-        zoom: 1.5
+      // Create marker feature
+      markerFeature.current = new Feature({
+        geometry: new Point(fromLonLat([longitude, latitude]))
       });
       
-      // Add navigation controls if interactive
+      // Set marker style with a green pin
+      markerFeature.current.setStyle(
+        new Style({
+          image: new Icon({
+            src: 'https://cdn.mapmarker.io/api/v1/pin?size=50&background=%234ade80&icon=fa-map-marker&color=%23FFFFFF',
+            scale: 0.7,
+            anchor: [0.5, 1]
+          })
+        })
+      );
+      
+      // Create vector layer for the marker
+      markerLayer.current = new VectorLayer({
+        source: new VectorSource({
+          features: [markerFeature.current]
+        })
+      });
+      
+      // Create map with ArcGIS layer from provided link
+      const newMap = new Map({
+        target: mapContainer.current,
+        layers: [
+          // Base OSM layer as fallback
+          new TileLayer({
+            source: new OSM(),
+            visible: false
+          }),
+          // ArcGIS layer from provided link
+          new TileLayer({
+            source: new XYZ({
+              url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+              maxZoom: 19
+            })
+          }),
+          markerLayer.current
+        ],
+        view: new View({
+          center: fromLonLat([0, 20]), // Start with world view
+          zoom: 2,
+          maxZoom: 19
+        })
+      });
+      
+      map.current = newMap;
+      
+      // Add click handler if interactive
       if (interactive) {
-        newMap.addControl(new mapboxgl.NavigationControl(), "top-right");
-        
-        // Add geolocate control to get user's location
-        const geolocate = new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        });
-        
-        newMap.addControl(geolocate, 'top-right');
-        geolocateControl.current = geolocate;
-        
-        // Listen for geolocate events
-        geolocate.on('geolocate', (e: any) => {
-          const lat = e.coords.latitude;
-          const lng = e.coords.longitude;
-          setCurrentLocation({lat, lng});
+        newMap.on('click', function(evt) {
+          const coordinate = evt.coordinate;
+          const lonLat = toLonLat(coordinate);
           
-          if (marker.current) {
-            marker.current.setLngLat([lng, lat]);
+          if (markerFeature.current) {
+            markerFeature.current.getGeometry()?.setCoordinates(coordinate);
           }
           
           if (onLocationSelect) {
-            // Try to get address from coordinates using reverse geocoding
-            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`)
+            const lng = lonLat[0];
+            const lat = lonLat[1];
+            
+            // Try to get address from coordinates using a free reverse geocoding service
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
               .then(response => response.json())
               .then(data => {
-                const address = data.features[0]?.place_name || '';
+                const address = data.display_name || '';
                 onLocationSelect(lat, lng, address);
               })
               .catch(err => {
@@ -88,221 +124,190 @@ const SimpleMap = ({
         });
       }
       
-      // Add a marker at the initial location
-      const newMarker = new mapboxgl.Marker({ 
-        draggable: interactive,
-        color: "#4ade80" // Green color
-      })
-        .setLngLat([longitude, latitude])
-        .addTo(newMap);
-      
-      // Handle marker drag end if the map is interactive
-      if (interactive && onLocationSelect) {
-        newMarker.on('dragend', () => {
-          const { lng, lat } = newMarker.getLngLat();
+      // Start animation to zoom into India
+      if (isZooming) {
+        setTimeout(() => {
+          newMap.getView().animate({
+            center: fromLonLat([80.7, 22.5]), // Center of India
+            zoom: 4,
+            duration: 2000
+          });
           
-          // Try to get address from coordinates using reverse geocoding
-          fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`)
-            .then(response => response.json())
-            .then(data => {
-              const address = data.features[0]?.place_name || '';
-              onLocationSelect(lat, lng, address);
-            })
-            .catch(err => {
-              console.error("Reverse geocoding error:", err);
-              onLocationSelect(lat, lng);
+          setTimeout(() => {
+            newMap.getView().animate({
+              center: fromLonLat([longitude, latitude]), // Delhi
+              zoom: 10,
+              duration: 2000
             });
-        });
+            setIsZooming(false);
+          }, 4000);
+        }, 1500);
       }
       
-      // Save references
-      map.current = newMap;
-      marker.current = newMarker;
-      
-      // Mark as loaded
-      newMap.on('load', () => {
-        setMapLoaded(true);
-        setShowTokenInput(false);
-        
-        // Add 3D terrain if available
-        newMap.addSource('mapbox-dem', {
-          'type': 'raster-dem',
-          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          'tileSize': 512,
-          'maxzoom': 14
-        });
-        
-        newMap.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        
-        // Add sky layer for more realistic view
-        newMap.addLayer({
-          'id': 'sky',
-          'type': 'sky',
-          'paint': {
-            'sky-type': 'atmosphere',
-            'sky-atmosphere-sun': [0.0, 0.0],
-            'sky-atmosphere-sun-intensity': 15
-          }
-        });
-
-        // Start animation to zoom into India
-        if (isZooming) {
-          setTimeout(() => {
-            newMap.flyTo({
-              center: [80.7, 22.5], // Center of India
-              zoom: 4,
-              speed: 0.5,
-              curve: 1,
-              essential: true
-            });
-            
-            setTimeout(() => {
-              newMap.flyTo({
-                center: [longitude, latitude], // Delhi
-                zoom: 10,
-                speed: 0.3,
-                essential: true
-              });
-              setIsZooming(false);
-            }, 4000);
-          }, 1500);
-        }
-      });
-      
       return () => {
-        newMap.remove();
+        if (map.current) {
+          map.current.setTarget(undefined);
+          map.current = null;
+        }
       };
     } catch (error) {
       console.error("Error initializing map:", error);
-      toast.error("Failed to initialize map. Please check your Mapbox token.");
-      setShowTokenInput(true);
+      toast.error("Failed to initialize map.");
     }
-  }, [mapboxToken, latitude, longitude, interactive, onLocationSelect, isZooming]);
+  }, [latitude, longitude, interactive, onLocationSelect, isZooming]);
   
   // Update marker position if lat/lng props change
   useEffect(() => {
-    if (map.current && marker.current && mapLoaded && !isZooming) {
-      marker.current.setLngLat([longitude, latitude]);
-      map.current.flyTo({
-        center: [longitude, latitude],
+    if (map.current && markerFeature.current && !isZooming) {
+      const newPosition = fromLonLat([longitude, latitude]);
+      markerFeature.current.getGeometry()?.setCoordinates(newPosition);
+      
+      map.current.getView().animate({
+        center: newPosition,
         zoom: 14,
-        essential: true
+        duration: 1000
       });
     }
-  }, [latitude, longitude, mapLoaded, isZooming]);
+  }, [latitude, longitude, isZooming]);
   
-  const handleTokenSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const input = document.getElementById("mapbox-token") as HTMLInputElement;
-    if (input.value.trim()) {
-      setMapboxToken(input.value.trim());
+  const handleGetCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          setCurrentLocation({lat, lng});
+          
+          if (map.current && markerFeature.current) {
+            const newPosition = fromLonLat([lng, lat]);
+            markerFeature.current.getGeometry()?.setCoordinates(newPosition);
+            
+            map.current.getView().animate({
+              center: newPosition,
+              zoom: 15,
+              duration: 1000
+            });
+          }
+          
+          if (onLocationSelect) {
+            onLocationSelect(lat, lng);
+          }
+          
+          toast.success("Location found successfully!");
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast.error("Could not get your location. Please check permissions.");
+        }
+      );
     } else {
-      toast.error("Please enter a valid Mapbox token");
+      toast.error("Geolocation is not supported by your browser");
     }
   };
   
-  const handleGetCurrentLocation = () => {
-    if (geolocateControl.current) {
-      geolocateControl.current.trigger();
-    } else {
-      // Fallback to browser geolocation API
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            setCurrentLocation({lat, lng});
-            
-            if (map.current && marker.current) {
-              marker.current.setLngLat([lng, lat]);
-              map.current.flyTo({
-                center: [lng, lat],
-                zoom: 15
-              });
-            }
-            
-            if (onLocationSelect) {
-              onLocationSelect(lat, lng);
-            }
-            
-            toast.success("Location found successfully!");
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-            toast.error("Could not get your location. Please check permissions.");
-          }
-        );
-      } else {
-        toast.error("Geolocation is not supported by your browser");
-      }
+  const handleSearchAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchInput.trim()) {
+      toast.error("Please enter a location to search");
+      return;
     }
+    
+    // Use OpenStreetMap Nominatim for geocoding
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchInput)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const result = data[0];
+          const lat = parseFloat(result.lat);
+          const lng = parseFloat(result.lon);
+          
+          if (map.current && markerFeature.current) {
+            const newPosition = fromLonLat([lng, lat]);
+            markerFeature.current.getGeometry()?.setCoordinates(newPosition);
+            
+            map.current.getView().animate({
+              center: newPosition,
+              zoom: 15,
+              duration: 1000
+            });
+          }
+          
+          if (onLocationSelect) {
+            onLocationSelect(lat, lng, result.display_name);
+          }
+          
+          toast.success("Location found!");
+        } else {
+          toast.error("Location not found. Please try a different search term.");
+        }
+      })
+      .catch(error => {
+        console.error("Error searching for location:", error);
+        toast.error("Error searching for location. Please try again.");
+      });
   };
   
   return (
     <div className="relative w-full" style={{ height }}>
-      {showTokenInput ? (
-        <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center p-6 rounded-lg">
-          <div className="text-center mb-6">
-            <div className="text-3xl mb-2">🗺️</div>
-            <h3 className="text-lg font-semibold mb-2">Mapbox API Token Required</h3>
-            <p className="text-gray-600 max-w-md">
-              To display the map, please enter your Mapbox public token. 
-              You can find this in your Mapbox account dashboard.
-            </p>
-          </div>
-          <form onSubmit={handleTokenSubmit} className="w-full max-w-md">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                id="mapbox-token"
-                type="text"
-                placeholder="Enter your Mapbox public token"
-                className="flex-1 px-4 py-2 border rounded-md focus:ring-eco-green focus:border-eco-green"
-              />
-              <Button type="submit" className="bg-eco-green hover:bg-eco-teal whitespace-nowrap">
-                Load Map
-              </Button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Get your token at <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-eco-green hover:underline">mapbox.com</a>
-            </p>
-          </form>
+      <div ref={mapContainer} className="absolute inset-0 rounded-lg shadow-md" />
+      
+      {/* Search address form */}
+      <div className="absolute top-4 left-4 z-10 bg-white rounded-md shadow-md p-2 w-64">
+        <form onSubmit={handleSearchAddress} className="flex">
+          <input
+            type="text"
+            placeholder="Search for a location"
+            className="flex-1 px-2 py-1 text-sm border rounded-l-md focus:outline-none"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          <Button 
+            type="submit" 
+            className="bg-eco-green hover:bg-eco-teal rounded-l-none rounded-r-md py-1 h-full text-xs"
+            size="sm"
+          >
+            <MapPin className="h-3 w-3 mr-1" />
+            Find
+          </Button>
+        </form>
+      </div>
+      
+      {/* Animated indicator for map loading */}
+      {isZooming && (
+        <div className="absolute top-4 right-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
+          <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+          <span>Dynamic map animation...</span>
         </div>
-      ) : (
-        <>
-          <div ref={mapContainer} className="absolute inset-0 rounded-lg shadow-md" />
-          
-          {/* Animated indicator for map loading */}
-          {isZooming && (
-            <div className="absolute top-4 right-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
-              <span>Dynamic map animation...</span>
-            </div>
-          )}
-          
-          {/* Floating control to get current location */}
-          {!currentLocation && !isZooming && (
-            <div className="absolute bottom-4 left-4 z-10">
-              <Button 
-                onClick={handleGetCurrentLocation}
-                className="bg-white text-gray-700 hover:bg-gray-100 shadow-md"
-                size="sm"
-              >
-                <Navigation className="h-4 w-4 mr-2" />
-                Get My Location
-              </Button>
-            </div>
-          )}
-          
-          {/* Location status indicator */}
-          {currentLocation && !isZooming && (
-            <div className="absolute bottom-4 left-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              <span>Live location active</span>
-            </div>
-          )}
-        </>
       )}
+      
+      {/* Floating control to get current location */}
+      {!currentLocation && !isZooming && (
+        <div className="absolute bottom-4 left-4 z-10">
+          <Button 
+            onClick={handleGetCurrentLocation}
+            className="bg-white text-gray-700 hover:bg-gray-100 shadow-md"
+            size="sm"
+          >
+            <Navigation className="h-4 w-4 mr-2" />
+            Get My Location
+          </Button>
+        </div>
+      )}
+      
+      {/* Location status indicator */}
+      {currentLocation && !isZooming && (
+        <div className="absolute bottom-4 left-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+          <span>Live location active</span>
+        </div>
+      )}
+      
+      {/* ArcGIS attribution */}
+      <div className="absolute bottom-1 right-1 z-10 bg-white/80 text-xs px-1 rounded text-gray-600">
+        Map: ArcGIS World Imagery
+      </div>
     </div>
   );
 };
