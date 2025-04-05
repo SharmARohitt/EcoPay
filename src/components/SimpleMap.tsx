@@ -30,6 +30,7 @@ const SimpleMap = ({
   const [showTokenInput, setShowTokenInput] = useState<boolean>(true);
   const [mapLoaded, setMapLoaded] = useState<boolean>(false);
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isZooming, setIsZooming] = useState<boolean>(true);
   
   // Initialize map when the token is provided
   useEffect(() => {
@@ -41,36 +42,13 @@ const SimpleMap = ({
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: "mapbox://styles/mapbox/streets-v11",
-        center: [longitude, latitude],
-        zoom: 12
+        center: [0, 20], // Start with world view
+        zoom: 1.5
       });
       
       // Add navigation controls if interactive
       if (interactive) {
         newMap.addControl(new mapboxgl.NavigationControl(), "top-right");
-        
-        // Add geocoder to search for locations
-        const geocoder = new mapboxgl.Geocoder({
-          accessToken: mapboxgl.accessToken,
-          mapboxgl: mapboxgl,
-          marker: false,
-          placeholder: 'Search for address',
-          countries: 'in', // Limit to India
-        });
-        
-        newMap.addControl(geocoder, 'top-left');
-        
-        // Handle geocoder results
-        geocoder.on('result', (e) => {
-          const coordinates = e.result.center;
-          if (marker.current) {
-            marker.current.setLngLat(coordinates);
-          }
-          
-          if (onLocationSelect) {
-            onLocationSelect(coordinates[1], coordinates[0], e.result.place_name);
-          }
-        });
         
         // Add geolocate control to get user's location
         const geolocate = new mapboxgl.GeolocateControl({
@@ -166,6 +144,29 @@ const SimpleMap = ({
             'sky-atmosphere-sun-intensity': 15
           }
         });
+
+        // Start animation to zoom into India
+        if (isZooming) {
+          setTimeout(() => {
+            newMap.flyTo({
+              center: [80.7, 22.5], // Center of India
+              zoom: 4,
+              speed: 0.5,
+              curve: 1,
+              essential: true
+            });
+            
+            setTimeout(() => {
+              newMap.flyTo({
+                center: [longitude, latitude], // Delhi
+                zoom: 10,
+                speed: 0.3,
+                essential: true
+              });
+              setIsZooming(false);
+            }, 4000);
+          }, 1500);
+        }
       });
       
       return () => {
@@ -176,11 +177,11 @@ const SimpleMap = ({
       toast.error("Failed to initialize map. Please check your Mapbox token.");
       setShowTokenInput(true);
     }
-  }, [mapboxToken, latitude, longitude, interactive, onLocationSelect]);
+  }, [mapboxToken, latitude, longitude, interactive, onLocationSelect, isZooming]);
   
   // Update marker position if lat/lng props change
   useEffect(() => {
-    if (map.current && marker.current && mapLoaded) {
+    if (map.current && marker.current && mapLoaded && !isZooming) {
       marker.current.setLngLat([longitude, latitude]);
       map.current.flyTo({
         center: [longitude, latitude],
@@ -188,7 +189,7 @@ const SimpleMap = ({
         essential: true
       });
     }
-  }, [latitude, longitude, mapLoaded]);
+  }, [latitude, longitude, mapLoaded, isZooming]);
   
   const handleTokenSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -271,8 +272,16 @@ const SimpleMap = ({
         <>
           <div ref={mapContainer} className="absolute inset-0 rounded-lg shadow-md" />
           
+          {/* Animated indicator for map loading */}
+          {isZooming && (
+            <div className="absolute top-4 right-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+              <span>Dynamic map animation...</span>
+            </div>
+          )}
+          
           {/* Floating control to get current location */}
-          {!currentLocation && (
+          {!currentLocation && !isZooming && (
             <div className="absolute bottom-4 left-4 z-10">
               <Button 
                 onClick={handleGetCurrentLocation}
@@ -286,7 +295,7 @@ const SimpleMap = ({
           )}
           
           {/* Location status indicator */}
-          {currentLocation && (
+          {currentLocation && !isZooming && (
             <div className="absolute bottom-4 left-4 z-10 bg-white py-1 px-3 rounded-full shadow-md text-xs flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
               <span>Live location active</span>
