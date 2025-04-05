@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -47,6 +46,8 @@ const formSchema = z.object({
     required_error: "Please select a time slot",
   }),
   additionalNotes: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,6 +55,10 @@ type FormValues = z.infer<typeof formSchema>;
 const SchedulePickupPage = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [mapCoordinates, setMapCoordinates] = useState({
+    latitude: 28.6139, // Default to Delhi
+    longitude: 77.2090,
+  });
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -64,15 +69,41 @@ const SchedulePickupPage = () => {
       date: undefined,
       timeSlot: "",
       additionalNotes: "",
+      latitude: 28.6139,
+      longitude: 77.2090,
     },
   });
+
+  const handleLocationSelect = (lat: number, lng: number, address?: string) => {
+    setMapCoordinates({
+      latitude: lat,
+      longitude: lng,
+    });
+    
+    form.setValue("latitude", lat);
+    form.setValue("longitude", lng);
+    
+    // If address is provided from reverse geocoding, update the address field
+    if (address) {
+      form.setValue("address", address);
+    }
+    
+    console.log(`Location selected: ${lat}, ${lng}, ${address || 'No address'}`);
+  };
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     
     try {
+      // Add coordinates to the values
+      const completeValues = {
+        ...values,
+        latitude: mapCoordinates.latitude,
+        longitude: mapCoordinates.longitude
+      };
+      
       // This would connect to a backend service in a real app
-      console.log("Form values:", values);
+      console.log("Form values:", completeValues);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -107,11 +138,21 @@ const SchedulePickupPage = () => {
           <p className="text-gray-600 mb-8">Fill out the form below to schedule your waste pickup</p>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Map - Now displayed first on mobile for better UX */}
+            <div className="order-1 lg:order-2 h-[500px] rounded-xl overflow-hidden shadow-md border">
+              <SimpleMap 
+                latitude={mapCoordinates.latitude}
+                longitude={mapCoordinates.longitude}
+                onLocationSelect={handleLocationSelect}
+                height="100%"
+              />
+            </div>
+            
             {/* Form */}
-            <div>
+            <div className="order-2 lg:order-1">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Moved the address field to the top */}
+                  {/* Address field with location button */}
                   <FormField
                     control={form.control}
                     name="address"
@@ -127,9 +168,8 @@ const SchedulePickupPage = () => {
                             variant="outline" 
                             className="ml-2 flex-shrink-0"
                             onClick={() => {
-                              // In a real app, this would get the user's location
-                              toast.info("Using your current location");
-                              form.setValue("address", "123 Main St, New York, NY 10001");
+                              // Display a message about using the map
+                              toast.info("Please use the map to select your exact location");
                             }}
                           >
                             <MapPin className="h-4 w-4" />
@@ -140,6 +180,14 @@ const SchedulePickupPage = () => {
                     )}
                   />
                   
+                  {/* We'll display the coordinates in a small text below the address */}
+                  {(form.watch("latitude") && form.watch("longitude")) && (
+                    <div className="text-xs text-gray-500 -mt-4">
+                      Location coordinates: {form.watch("latitude")?.toFixed(4)}, {form.watch("longitude")?.toFixed(4)}
+                    </div>
+                  )}
+                  
+                  {/* Rest of the form fields */}
                   <FormField
                     control={form.control}
                     name="wasteType"
@@ -299,11 +347,6 @@ const SchedulePickupPage = () => {
                   </Button>
                 </form>
               </Form>
-            </div>
-            
-            {/* Map */}
-            <div className="h-[500px] rounded-xl overflow-hidden shadow-md border">
-              <SimpleMap />
             </div>
           </div>
         </div>
