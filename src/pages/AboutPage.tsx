@@ -7,25 +7,25 @@ import { Button } from "@/components/ui/button";
 const AboutPage = () => {
   const teamMembers = [
     {
-      name: "Priya Sharma",
+      name: "Rohit Sharma",
       role: "Founder & CEO",
       image: "https://randomuser.me/api/portraits/women/45.jpg",
       bio: "Environmental engineer with 10+ years experience in waste management solutions."
     },
     {
-      name: "Rajesh Patel",
+      name: "Ubee Kapoor",
       role: "CTO",
       image: "https://randomuser.me/api/portraits/men/32.jpg",
       bio: "Blockchain expert and former tech lead at Google with a passion for sustainability."
     },
     {
-      name: "Ananya Gupta",
+      name: "Prachi Gupta",
       role: "COO",
       image: "https://randomuser.me/api/portraits/women/68.jpg",
       bio: "Operations specialist with experience scaling green startups across South Asia."
     },
     {
-      name: "Vikram Singh",
+      name: "Tulip",
       role: "Head of Partnerships",
       image: "https://randomuser.me/api/portraits/men/75.jpg",
       bio: "Former sustainability consultant connecting businesses with eco-friendly solutions."
